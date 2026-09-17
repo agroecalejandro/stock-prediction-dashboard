@@ -1,0 +1,894 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Stock Forecasting Methodology</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  MathJax = {
+    tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+    chtml: { displayAlign: 'left' }
+  };
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+<style>
+  :root {
+    --bg: #eef1ec;
+    --surface: #ffffff;
+    --surface-2: #e7ebe4;
+    --ink: #1a2421;
+    --ink-muted: #5b6560;
+    --ink-faint: #838d87;
+    --accent: #1f4b6b;
+    --accent-strong: #163a54;
+    --accent-soft: #e3edf2;
+    --pos: #2e7d5b;
+    --pos-soft: #e2f0e9;
+    --neg: #a94a3a;
+    --neg-soft: #f4e6e2;
+    --line: #d3d7cd;
+    --line-strong: #b7bcb1;
+    --shadow: 0 1px 2px rgba(26,36,33,0.06), 0 8px 24px rgba(26,36,33,0.05);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121615;
+      --surface: #1a201e;
+      --surface-2: #212824;
+      --ink: #e7ebe5;
+      --ink-muted: #9aa39c;
+      --ink-faint: #6d766f;
+      --accent: #86adc7;
+      --accent-strong: #a9c7db;
+      --accent-soft: #1e2f39;
+      --pos: #6fbe99;
+      --pos-soft: #1c2e26;
+      --neg: #d98a79;
+      --neg-soft: #33231f;
+      --line: #2b322e;
+      --line-strong: #3a423d;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121615;
+    --surface: #1a201e;
+    --surface-2: #212824;
+    --ink: #e7ebe5;
+    --ink-muted: #9aa39c;
+    --ink-faint: #6d766f;
+    --accent: #86adc7;
+    --accent-strong: #a9c7db;
+    --accent-soft: #1e2f39;
+    --pos: #6fbe99;
+    --pos-soft: #1c2e26;
+    --neg: #d98a79;
+    --neg-soft: #33231f;
+    --line: #2b322e;
+    --line-strong: #3a423d;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    padding: 0 20px;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  .page {
+    max-width: 780px;
+    margin: 0 auto;
+    padding-block: 56px 96px;
+  }
+  .wide { max-width: 1140px; }
+
+  h1, h2, h3 {
+    font-family: "IBM Plex Serif", ui-serif, Georgia, serif;
+    color: var(--ink);
+    text-wrap: balance;
+    font-weight: 600;
+  }
+
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  h1 {
+    font-size: clamp(28px, 4.4vw, 40px);
+    line-height: 1.15;
+    margin: 10px 0 18px;
+    letter-spacing: -0.01em;
+  }
+
+  .abstract {
+    color: var(--ink-muted);
+    font-size: 17px;
+    max-width: 95ch;
+    margin: 0 0 28px;
+  }
+
+  .meta-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 28px;
+    padding-block: 18px;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 52px;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 12.5px;
+    color: var(--ink-muted);
+  }
+  .meta-strip span b {
+    color: var(--ink);
+    font-weight: 500;
+    display: block;
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 13.5px;
+    margin-top: 2px;
+  }
+  .meta-strip .label {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 10.5px;
+  }
+
+  section { margin-bottom: 54px; }
+  section > .sec-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .sec-num {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 13px;
+    color: var(--ink-faint);
+    min-width: 22px;
+  }
+  h2 { font-size: 22px; margin: 0; }
+  h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--accent-strong);
+    margin: 26px 0 10px;
+    font-family: "IBM Plex Sans", sans-serif;
+  }
+
+  p {
+    margin: 0 0 14px;
+    max-width: 95ch;
+    text-align: justify;
+    text-align-last: left;
+    hyphens: auto;
+  }
+  ul, ol { margin: 0 0 14px; padding-left: 22px; max-width: 68ch; }
+  li { margin-bottom: 6px; }
+  strong { font-weight: 600; color: var(--ink); }
+  a { color: var(--accent); }
+
+  code, .mono {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.9em;
+  }
+  .inline-code {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 0.86em;
+  }
+
+  .callout {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 20px 24px;
+    box-shadow: var(--shadow);
+    margin: 20px 0;
+  }
+  .callout .eyebrow { margin-bottom: 6px; display: block; }
+  .callout p:last-child { margin-bottom: 0; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14.5px;
+    margin: 4px 0 20px;
+  }
+  caption {
+    text-align: left;
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    margin-bottom: 8px;
+    caption-side: top;
+  }
+  th, td {
+    text-align: left;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  th {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+    font-weight: 500;
+    border-bottom: 1px solid var(--line-strong);
+  }
+  td.num, th.num {
+    text-align: right;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  tr:last-child td { border-bottom: none; }
+  .table-wrap { overflow-x: auto; }
+  td.best { color: var(--pos); font-weight: 600; }
+  .row-model { font-weight: 500; }
+
+  .pill {
+    display: inline-block;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11px;
+    padding: 2px 9px;
+    border-radius: 100px;
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    border: 1px solid var(--line);
+  }
+  .pill.pos { background: var(--pos-soft); color: var(--pos); }
+  .pill.neg { background: var(--neg-soft); color: var(--neg); }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin: 18px 0 24px;
+  }
+  @media (max-width: 640px) { .cards { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 18px;
+    box-shadow: var(--shadow);
+  }
+  .card .k { font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.06em; }
+  .card h4 { margin: 4px 0 6px; font-family: "IBM Plex Serif", serif; font-size: 16.5px; font-weight: 600; }
+  .card p { font-size: 13.5px; color: var(--ink-muted); margin: 0; text-align: left; }
+
+  figure { margin: 22px 0; }
+  figure svg { width: 100%; height: auto; display: block; }
+  figcaption {
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    margin-top: 10px;
+    text-align: center;
+  }
+
+  .before-after {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .before-after .from { color: var(--neg); }
+  .before-after .arrow { color: var(--ink-faint); }
+  .before-after .to { color: var(--pos); font-weight: 600; }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--line);
+    margin: 52px 0;
+  }
+
+  .eq-box {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 16px 20px 18px;
+    margin: 14px 0 18px;
+    overflow-x: auto;
+    color: var(--ink);
+  }
+  .eq-box .eq-label {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--accent-strong);
+    display: block;
+    margin-bottom: 10px;
+  }
+  .eq-box mjx-container { color: var(--ink) !important; }
+  .eq-box .eq-note {
+    font-size: 13.5px;
+    color: var(--ink-muted);
+    margin: 10px 0 0;
+    max-width: 80ch;
+    text-align: left;
+  }
+  .eq-note code { color: var(--ink); }
+  .eq-box + .eq-box { margin-top: -4px; }
+
+  .impl-table td, .impl-table th { font-size: 13px; }
+  .impl-table td:first-child { color: var(--ink-muted); white-space: nowrap; }
+
+  footer {
+    color: var(--ink-faint);
+    font-size: 12.5px;
+    padding-top: 28px;
+    border-top: 1px solid var(--line);
+  }
+
+  @media (max-width: 480px) {
+    .meta-strip { gap: 14px 22px; }
+  }
+</style>
+</head>
+<body>
+<div class="page wide">
+
+  <span class="eyebrow">Methodology note &middot; applied data science for markets</span>
+  <h1>Stock price forecasting: a comparative study across statistical, machine-learning, deep-learning, and foundation-model methods</h1>
+  <p class="abstract">
+    This document describes the methodology behind a daily monitoring and forecasting system for
+    four technology stocks (Amazon, Meta, Alphabet/Google, and NVIDIA), built to compare, under one
+    shared validation protocol, <strong>seven models spanning four distinct modeling paradigms</strong>:
+    a classical statistical model (ARIMA), three tree-ensemble machine-learning models (Random Forest,
+    XGBoost, LightGBM), two from-scratch deep-learning sequence models (GRU, Transformer), and one
+    pretrained time-series foundation model used zero-shot (TimesFM). The emphasis is on the
+    methodological decisions &mdash;particularly how non-stationarity is handled&mdash; rather than on
+    the code; the Python implementation is summarized briefly at the end.
+  </p>
+
+  <div class="meta-strip">
+    <span><span class="label">Universe</span><b>AMZN &middot; META &middot; GOOGL &middot; NVDA</b></span>
+    <span><span class="label">Historical horizon</span><b>5 years, daily frequency</b></span>
+    <span><span class="label">Forecast horizon</span><b>t+1 (evaluated) &middot; ~1 month (projected)</b></span>
+    <span><span class="label">Validation</span><b>70 / 30 chronological split</b></span>
+    <span><span class="label">Metrics</span><b>MAE &middot; RMSE &middot; MAPE</b></span>
+  </div>
+
+  <section id="data">
+    <div class="sec-head"><span class="sec-num">01</span><h2>Data sources and preprocessing</h2></div>
+    <p>
+      The price series (open, high, low, close, volume) is pulled from Yahoo Finance at daily
+      frequency. As an exploratory side input, recent financial headlines for each company are
+      collected via RSS and classified by sentiment (Section 7). <strong>SpaceX was excluded from the
+      universe</strong> because it is not a publicly traded company &mdash;a data-availability
+      constraint, not a judgment about economic relevance.
+    </p>
+    <p>
+      Two families of explanatory variables are built on top of the raw series. Technical indicators
+      encode momentum, trend, and mean-reversion priors from classical technical analysis; calendar
+      variables encode deterministic seasonality documented in the market-microstructure literature
+      (e.g., day-of-week and turn-of-month effects). Neither family is meant to be interpreted
+      causally &mdash;they simply give a nonlinear learner something to exploit if the corresponding
+      pattern is present in this particular sample.
+    </p>
+    <div class="cards">
+      <div class="card">
+        <span class="k">Technical indicators</span>
+        <h4>Momentum &amp; trend</h4>
+        <p>Moving averages (5/10/20-day), RSI(14), MACD and its signal line, Bollinger Bands, 1- and 5-day returns, 10-day rolling volatility, and lagged closes (1&ndash;10 days).</p>
+      </div>
+      <div class="card">
+        <span class="k">Calendar variables</span>
+        <h4>Deterministic seasonality</h4>
+        <p>Month, day of week, day of month, quarter, and month-end flag &mdash;calendar effects documented in the market-microstructure literature.</p>
+      </div>
+      <div class="card">
+        <span class="k">Temporal alignment</span>
+        <h4>No information leakage</h4>
+        <p>Every feature in row <em>t</em> uses only information available at the close of day <em>t</em>; the target is always the close of day <em>t+1</em>.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="stationarity">
+    <div class="sec-head"><span class="sec-num">02</span><h2>The stationarity problem</h2></div>
+    <p>
+      The most consequential methodological decision in this project was <strong>what variable to
+      predict</strong>. The naive formulation &mdash;fitting each model directly on the price level
+      <span class="mono">close<sub>t+1</sub></span>&mdash; ignores that a stock's price is, under the
+      weak form of market efficiency, close to a random walk: a series with a unit root and
+      non-constant mean and variance. A model trained on a bounded historical price range has only
+      ever seen that range; if the validation period falls outside it &mdash;exactly what happens when
+      a stock sets new all-time highs, as NVIDIA and Alphabet both did during the evaluation
+      window&mdash; the outcome hinges entirely on whether the model can extrapolate.
+    </p>
+    <p>
+      Decision trees (and, by extension, their ensembles) <strong>cannot extrapolate</strong>: a
+      leaf's prediction is the average of the training targets that landed in it, so no combination of
+      input features can ever produce a value outside the observed range. Recurrent networks trained on
+      price scaled with a <span class="mono">MinMaxScaler</span> fit on the training set suffer a
+      variant of the same problem, since the scaler itself encodes the training-time range. In both
+      cases the symptom is identical: the model systematically undershoots exactly when the stock
+      breaks out of its historical range &mdash;formally, this is exactly the situation a unit-root
+      test such as the Augmented Dickey&ndash;Fuller test is designed to flag before any model is fit.
+    </p>
+    <p>
+      The standard fix in financial econometrics is to model the <strong>percentage return</strong>
+      instead of the level &mdash;a series that is approximately stationary in variance and bounded to
+      a narrow range regardless of the price level:
+    </p>
+    <div class="eq-box">
+      <span class="eq-label">Target reformulation</span>
+      \[ r_{t+1} = \frac{P_{t+1}}{P_t} - 1 \qquad\Longrightarrow\qquad \hat P_{t+1} = P_t\,(1+\hat r_{t+1}) \]
+      <p class="eq-note">
+        Six of the seven models in this study predict this return; the price is reconstructed
+        afterward, in a deterministic step that never requires the model to have "seen" that price
+        level during training. TimesFM (Section 4) is the one exception, for a reason grounded in its
+        own architecture.
+      </p>
+    </div>
+    <p>The effect of this single change, measured on this very project, was substantial:</p>
+    <div class="table-wrap">
+      <table>
+        <caption>Validation-set MAPE, before and after reformulating the target as a return</caption>
+        <thead><tr><th>Model</th><th>Ticker</th><th class="num">Predicting price level</th><th class="num">Predicting return</th></tr></thead>
+        <tbody>
+          <tr><td class="row-model">Random Forest</td><td>NVDA</td><td class="num"><span class="pill neg">19.18 %</span></td><td class="num"><span class="pill pos">2.39 %</span></td></tr>
+          <tr><td class="row-model">Random Forest</td><td>GOOGL</td><td class="num"><span class="pill neg">25.29 %</span></td><td class="num"><span class="pill pos">1.52 %</span></td></tr>
+          <tr><td class="row-model">XGBoost</td><td>GOOGL</td><td class="num"><span class="pill neg">24.85 %</span></td><td class="num"><span class="pill pos">1.80 %</span></td></tr>
+          <tr><td class="row-model">Transformer</td><td>GOOGL</td><td class="num"><span class="pill neg">21.52 %</span></td><td class="num"><span class="pill pos">1.47 %</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout">
+      <span class="eyebrow">Reading for the seminar</span>
+      <p>
+        The point is not that these models are "bad", but that <strong>the specification of the
+        target determines whether the model's implicit stationarity assumption holds</strong>. It is
+        the same argument that motivates differencing a series before fitting an ARIMA(p,d,q) with
+        d&nbsp;&gt;&nbsp;0 &mdash;applied here, in the same spirit, to models that have no explicit
+        differencing parameter of their own.
+      </p>
+    </div>
+  </section>
+
+  <section id="validation">
+    <div class="sec-head"><span class="sec-num">03</span><h2>Validation design</h2></div>
+    <p>
+      Because this is time-series data, the train/validation split is <strong>chronological</strong>
+      (initial 70&nbsp;% / most recent 30&nbsp;%), never random: shuffling observations would leak
+      future information into the past (<em>look-ahead bias</em>) and yield an overly optimistic
+      estimate of generalization error. This is the walk-forward analogue of k-fold cross-validation;
+      standard shuffled k-fold is not a valid choice for a problem with this dependence structure.
+    </p>
+    <p>Performance is summarized with three complementary metrics, over the <em>n</em> validation points, actual value \(y_i\) and forecast \(\hat y_i\):</p>
+    <div class="eq-box">
+      <span class="eq-label">MAE &mdash; Mean Absolute Error</span>
+      \[ \text{MAE} = \frac{1}{n}\sum_{i=1}^{n} \left| y_i - \hat y_i \right| \]
+      <p class="eq-note">
+        The average error in the original units (USD). Every error counts linearly regardless of size,
+        which makes MAE robust to the occasional large miss &mdash;a useful reading of "typical
+        dollar error" when large and small misses matter roughly equally.
+      </p>
+    </div>
+    <div class="eq-box">
+      <span class="eq-label">RMSE &mdash; Root Mean Squared Error</span>
+      \[ \text{RMSE} = \sqrt{\frac{1}{n}\sum_{i=1}^{n} \left(y_i - \hat y_i\right)^2} \]
+      <p class="eq-note">
+        Squares each error before averaging, so large misses are penalized disproportionately
+        (RMSE&nbsp;\(\geq\)&nbsp;MAE always, with equality only when every error has the same
+        magnitude). Useful when big misses are costlier than the sum of many small ones; the gap
+        between RMSE and MAE is itself informative &mdash;a wide gap flags a few outlier errors rather
+        than uniformly mediocre ones.
+      </p>
+    </div>
+    <div class="eq-box">
+      <span class="eq-label">MAPE &mdash; Mean Absolute Percentage Error</span>
+      \[ \text{MAPE} = \frac{100\%}{n}\sum_{i=1}^{n} \left| \frac{y_i - \hat y_i}{y_i} \right| \]
+      <p class="eq-note">
+        Expresses error as a percentage of the actual value, making it scale-free &mdash;the only one
+        of the three that can be meaningfully compared across tickers trading at very different price
+        levels (AMZN around $250 vs. META around $700). This is why Section 8 reports MAPE as the
+        primary comparison metric across models and companies.
+      </p>
+    </div>
+  </section>
+
+  <section id="models">
+    <div class="sec-head"><span class="sec-num">04</span><h2>Models evaluated</h2></div>
+    <p>
+      All seven models share the same target (return at t+1, except TimesFM) and the same validation
+      protocol, but they differ in how they represent temporal dependence &mdash;and, in TimesFM's
+      case, in whether they are fit to this data at all.
+    </p>
+
+    <h3>Statistical &mdash; ARIMA(p,d,q)</h3>
+    <p>
+      ARIMA follows the classical Box&ndash;Jenkins methodology: identify candidate orders (here, by
+      scanning a bounded grid rather than visually inspecting the autocorrelation and
+      partial-autocorrelation functions), estimate coefficients by maximum likelihood, and select among
+      candidates with the Akaike Information Criterion, which trades off fit against complexity
+      &mdash;a lighter penalty on extra parameters than BIC, appropriate when slight overfitting to
+      noise is a smaller concern than under-parametrizing a comparison model. Evaluation uses one-step
+      <em>rolling</em> forecasts: at each validation point the model is refit on all real history
+      observed up to that point and projects one step ahead, the standard way to backtest a univariate
+      model without ever letting it see the future.
+    </p>
+    <div class="eq-box">
+      <span class="eq-label">Equation</span>
+      \[ \phi(B)\,(1-B)^d y_t \;=\; c + \theta(B)\,\varepsilon_t \]
+      <p class="eq-note">
+        \(B\) is the lag operator (\(By_t = y_{t-1}\)); \(\phi(B) = 1-\phi_1B-\cdots-\phi_pB^p\) is the
+        autoregressive polynomial; \(\theta(B) = 1+\theta_1B+\cdots+\theta_qB^q\) the moving-average
+        polynomial; \(\varepsilon_t\) is white noise. Differencing \(d\) times removes the unit root
+        before \(\phi\) and \(\theta\) are fit on the now-stationary series.
+      </p>
+    </div>
+
+    <h3>Machine learning &mdash; Random Forest, XGBoost, LightGBM</h3>
+    <p>
+      All three are decision-tree ensembles over the technical and calendar variables, and each sits
+      differently on the bias&ndash;variance tradeoff than a single deep tree. An unpruned regression
+      tree has low bias but high variance (it overfits easily); <strong>Random Forest</strong> reduces
+      that variance by averaging many trees grown on bootstrap resamples of the training data
+      (<em>bagging</em>) while additionally randomizing the subset of features considered at each split
+      &mdash;which decorrelates the trees further than bootstrap sampling alone, making the average more
+      effective. <strong>Gradient boosting</strong> (XGBoost, LightGBM) instead reduces bias directly:
+      each new tree is fit to the residual error of the ensemble built so far, so the ensemble as a
+      whole can represent a far more flexible function than any single tree, at the cost of being more
+      prone to overfitting without regularization. All three are included to separate whether
+      performance differences come from the ensembling principle itself (bagging vs. boosting) or from
+      implementation details specific to one library.
+    </p>
+    <div class="eq-box">
+      <span class="eq-label">Random Forest &mdash; bagging</span>
+      \[ \hat r_{t+1} = \frac{1}{B}\sum_{b=1}^{B} T_b(\mathbf{x}_t) \]
+      <p class="eq-note">
+        Each \(T_b\) is a regression tree trained on a bootstrap sample of the training rows, with a
+        random subset of the 25 technical/calendar variables available at each split;
+        \(\mathbf{x}_t\) is the feature vector for day \(t\). Averaging trees fit on different random
+        perturbations of the data reduces variance without increasing bias.
+      </p>
+    </div>
+    <div class="eq-box">
+      <span class="eq-label">XGBoost / LightGBM &mdash; gradient boosting</span>
+      \[ \hat r_{t+1}^{(K)} = \sum_{k=1}^{K} f_k(\mathbf{x}_t), \qquad
+         \mathcal{L}^{(k)} = \sum_{i} \ell\!\left(r_i,\ \hat r_i^{(k-1)} + f_k(\mathbf{x}_i)\right) + \Omega(f_k) \]
+      <p class="eq-note">
+        Each tree \(f_k\) is fit to correct the residual of the ensemble built so far, regularized by
+        \(\Omega(f) = \gamma T + \tfrac{1}{2}\lambda\lVert w\rVert^2\) (\(T\)&nbsp;=&nbsp;number of
+        leaves, \(w\)&nbsp;=&nbsp;leaf weights) to control overfitting &mdash;the same spirit as
+        ridge/lasso regularization in linear models. <strong>XGBoost</strong>'s specific contribution
+        over classical gradient boosting is to fit each tree using a <em>second-order</em> (Newton)
+        approximation of the loss &mdash;both its gradient and its Hessian&mdash; which converges
+        faster and more stably than using the gradient alone, and it grows trees level by level.
+        <strong>LightGBM</strong> instead grows leaf-wise (<em>best-first</em>, always splitting
+        whichever leaf reduces loss the most) over pre-binned histograms of the features, which is
+        faster and often more accurate at an equal tree count, at a higher risk of overfitting on small
+        data that LightGBM controls with its own leaf-count constraints.
+      </p>
+    </div>
+
+    <h3>Deep learning &mdash; GRU and Transformer</h3>
+    <p>
+      Both are from-scratch sequence models, trained only on this project's own data (no pretraining),
+      that receive a window of the last 30 daily returns and produce the next one. Vanilla recurrent
+      networks struggle over sequences this long because gradients backpropagated through many time
+      steps tend to vanish or explode, effectively hiding early inputs in the window from the loss; the
+      <strong>Gated Recurrent Unit</strong> addresses this with learned gates that let the network
+      decide, at every step, how much of the past to keep versus overwrite &mdash;a lighter cousin of
+      the LSTM that merges its forget and input gates into a single update gate, with comparable
+      performance on many tasks and fewer parameters to fit. The <strong>Transformer</strong> removes
+      recurrence altogether: self-attention lets every position in the window attend directly to every
+      other position in a single matrix multiplication, so the path length between any two time steps
+      is \(O(1)\) instead of growing with their distance as in a recurrent network &mdash;which both
+      parallelizes training and tends to preserve longer-range dependencies. Both architectures are
+      included to contrast the classical recurrent paradigm with the attention-based one that now
+      dominates the sequence-modeling literature.
+    </p>
+    <div class="eq-box">
+      <span class="eq-label">GRU &mdash; Gated Recurrent Unit</span>
+      \[
+      \begin{aligned}
+      z_t &= \sigma(W_z x_t + U_z h_{t-1} + b_z) \\[2pt]
+      r_t &= \sigma(W_r x_t + U_r h_{t-1} + b_r) \\[2pt]
+      \tilde h_t &= \tanh\!\big(W_h x_t + U_h (r_t \odot h_{t-1}) + b_h\big) \\[2pt]
+      h_t &= (1-z_t)\odot h_{t-1} + z_t \odot \tilde h_t
+      \end{aligned}
+      \]
+      <p class="eq-note">
+        \(x_t\) is the daily return at position \(t\) of the window; the update gate \(z_t\) decides how
+        much of the previous state \(h_{t-1}\) to keep versus the candidate \(\tilde h_t\); the reset
+        gate \(r_t\) controls how much of the past influences that candidate. The forecast is a linear
+        layer over the final state: \(\hat r_{t+1} = W_o h_{30} + b_o\).
+      </p>
+    </div>
+    <div class="eq-box">
+      <span class="eq-label">Transformer &mdash; self-attention</span>
+      \[ \mathrm{Attention}(Q,K,V) = \mathrm{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right) V,
+         \qquad Q=XW^Q,\ K=XW^K,\ V=XW^V \]
+      <p class="eq-note">
+        \(X\in\mathbb{R}^{30\times d}\) is the window of 30 returns with positional encoding added
+        &mdash;attention alone is permutation-invariant, so without it the model could not tell a
+        Monday from a Friday. This implementation uses 4 attention heads in parallel, each free to learn
+        a different notion of "relevant past day"; their outputs are concatenated and linearly
+        projected. Every position attends directly to the 29 others in one matrix step, with no
+        sequential recursion; the forecast comes from a linear layer over the final position's
+        representation.
+      </p>
+    </div>
+
+    <h3>Foundation model &mdash; TimesFM</h3>
+    <p>
+      TimesFM represents a fourth, more recent paradigm: instead of fitting a model from scratch to
+      each ticker's roughly 900 training rows, it is <strong>pretrained once</strong> on a large,
+      heterogeneous corpus of real-world time series spanning many domains (retail demand, web traffic,
+      weather, finance, and more), then applied <strong>zero-shot</strong> to a series it has never
+      seen &mdash;with no per-ticker fine-tuning and no hyperparameter search. It is the time-series
+      analogue of the pretrain-then-zero-shot-inference paradigm that large language models popularized
+      for text. Architecturally it is a decoder-only Transformer operating on <em>patches</em> of
+      consecutive time steps rather than individual points, which shortens the effective sequence
+      length the attention mechanism must cover and lets a single forward pass produce a genuinely
+      multi-step forecast, rather than one value at a time.
+    </p>
+    <p>
+      This is also why TimesFM is the one model in this study that targets the price <strong>level</strong>
+      directly instead of the return: before forecasting, it instance-normalizes each input window
+      internally (subtracting and rescaling by that window's own statistics) and denormalizes the
+      output afterward, so its notion of "range" is always relative to the specific series it is
+      looking at, never to a fixed range memorized at training time. This is precisely the property
+      Section 2 identified as missing from the tree ensembles and the from-scratch networks, and it is
+      what lets TimesFM extrapolate safely on a stock making new highs it has never been trained on.
+    </p>
+    <div class="eq-box">
+      <span class="eq-label">TimesFM &mdash; zero-shot forecast</span>
+      \[ \hat y_{t+1:\,t+h} = \mathrm{TimesFM}_{\theta}\!\big(y_{t-c+1:\,t}\big) \]
+      <p class="eq-note">
+        \(\theta\) denotes the pretrained weights, held <strong>frozen</strong> for every ticker in this
+        study &mdash;unlike every other model in this section, no fitting step happens here. \(c\) is
+        the context window length fed to the model (512 trading days in this project) and \(h\) the
+        forecast horizon, produced natively in one pass. The model also outputs calibrated quantile
+        forecasts alongside the point forecast used here &mdash;a natural basis for uncertainty bands
+        not yet surfaced in the dashboard.
+      </p>
+    </div>
+
+    <figure>
+      <svg viewBox="0 0 900 480" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Workflow diagram">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--ink-faint)"></path>
+          </marker>
+        </defs>
+        <style>
+          .box { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1; }
+          .box-accent { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.2; }
+          .lbl { font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; fill: var(--ink); }
+          .lbl-sm { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; fill: var(--ink-muted); }
+          .grp-lbl { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.06em; fill: var(--ink-faint); text-transform: uppercase; }
+          .edge { stroke: var(--ink-faint); stroke-width: 1.2; fill: none; marker-end: url(#arrow); }
+        </style>
+
+        <rect x="20" y="24" width="180" height="56" rx="8" class="box"></rect>
+        <text x="110" y="47" text-anchor="middle" class="lbl">Price OHLCV</text>
+        <text x="110" y="64" text-anchor="middle" class="lbl-sm">Yahoo Finance · 5 years</text>
+
+        <rect x="20" y="100" width="180" height="56" rx="8" class="box"></rect>
+        <text x="110" y="123" text-anchor="middle" class="lbl">Financial headlines</text>
+        <text x="110" y="140" text-anchor="middle" class="lbl-sm">RSS per company</text>
+
+        <path class="edge" d="M200,52 H235 C255,52 255,90 275,90"></path>
+        <path class="edge" d="M200,128 H260"></path>
+
+        <rect x="260" y="62" width="190" height="56" rx="8" class="box-accent"></rect>
+        <text x="355" y="85" text-anchor="middle" class="lbl">Technical features</text>
+        <text x="355" y="102" text-anchor="middle" class="lbl-sm">indicators + calendar</text>
+
+        <rect x="260" y="128" width="190" height="56" rx="8" class="box"></rect>
+        <text x="355" y="151" text-anchor="middle" class="lbl">FinBERT</text>
+        <text x="355" y="168" text-anchor="middle" class="lbl-sm">sentiment classification</text>
+
+        <text x="605" y="14" text-anchor="middle" class="grp-lbl">four modeling paradigms, evaluated at t+1</text>
+
+        <path class="edge" d="M450,90 H480 C500,90 500,47 520,47"></path>
+        <path class="edge" d="M450,90 H480 C500,90 500,97 520,97"></path>
+        <path class="edge" d="M450,90 H480 C500,90 500,147 520,147"></path>
+        <path class="edge" d="M450,90 H480 C500,90 500,197 520,197"></path>
+
+        <rect x="520" y="26" width="170" height="42" rx="8" class="box"></rect>
+        <text x="605" y="43" text-anchor="middle" class="lbl">Statistical</text>
+        <text x="605" y="59" text-anchor="middle" class="lbl-sm">ARIMA</text>
+
+        <rect x="520" y="76" width="170" height="42" rx="8" class="box"></rect>
+        <text x="605" y="93" text-anchor="middle" class="lbl">Machine Learning</text>
+        <text x="605" y="109" text-anchor="middle" class="lbl-sm">RF · XGBoost · LightGBM</text>
+
+        <rect x="520" y="126" width="170" height="42" rx="8" class="box"></rect>
+        <text x="605" y="143" text-anchor="middle" class="lbl">Deep Learning</text>
+        <text x="605" y="159" text-anchor="middle" class="lbl-sm">GRU · Transformer</text>
+
+        <rect x="520" y="176" width="170" height="42" rx="8" class="box-accent"></rect>
+        <text x="605" y="193" text-anchor="middle" class="lbl">Foundation Model</text>
+        <text x="605" y="209" text-anchor="middle" class="lbl-sm">TimesFM (zero-shot)</text>
+
+        <path class="edge" d="M690,47 H720 C740,47 740,105 750,105"></path>
+        <path class="edge" d="M690,97 H720 C740,97 740,125 750,125"></path>
+        <path class="edge" d="M690,147 H720 C740,147 740,145 750,145"></path>
+        <path class="edge" d="M690,197 H720 C740,197 740,165 750,165"></path>
+
+        <rect x="750" y="80" width="130" height="120" rx="8" class="box-accent"></rect>
+        <text x="815" y="115" text-anchor="middle" class="lbl">Validation</text>
+        <text x="815" y="133" text-anchor="middle" class="lbl-sm">70/30 split</text>
+        <text x="815" y="151" text-anchor="middle" class="lbl-sm">Optuna · 6 of 7</text>
+
+        <path class="edge" d="M815,200 V235 C815,255 790,255 765,278"></path>
+        <path class="edge" d="M355,184 V260 C355,288 500,288 620,296"></path>
+
+        <rect x="180" y="310" width="220" height="60" rx="8" class="box"></rect>
+        <text x="290" y="334" text-anchor="middle" class="lbl">Historical fit + forecast</text>
+        <text x="290" y="351" text-anchor="middle" class="lbl-sm">recursive, ~1 business month</text>
+
+        <rect x="620" y="300" width="220" height="70" rx="8" class="box"></rect>
+        <text x="730" y="324" text-anchor="middle" class="lbl">Compared metrics</text>
+        <text x="730" y="341" text-anchor="middle" class="lbl-sm">MAE · RMSE · MAPE</text>
+        <text x="730" y="357" text-anchor="middle" class="lbl-sm">per model and ticker</text>
+
+        <path class="edge" d="M400,340 H480 C500,340 500,340 520,340"></path>
+        <path class="edge" d="M620,335 H540 C520,335 520,340 520,340"></path>
+
+        <rect x="330" y="400" width="240" height="56" rx="8" class="box-accent"></rect>
+        <text x="450" y="424" text-anchor="middle" class="lbl">Interactive dashboard</text>
+        <text x="450" y="441" text-anchor="middle" class="lbl-sm">filterable by company &amp; model</text>
+        <path class="edge" d="M520,340 V380 C520,400 500,400 480,418"></path>
+      </svg>
+      <figcaption>End-to-end data flow: from raw prices to model comparison and forecast.</figcaption>
+    </figure>
+  </section>
+
+  <section id="optimization">
+    <div class="sec-head"><span class="sec-num">05</span><h2>Hyperparameter optimization</h2></div>
+    <p>
+      Every model except ARIMA (whose only structural hyperparameter is its order, chosen by AIC as
+      above) and TimesFM (which has none to tune, being used as a frozen pretrained model) is tuned
+      with <strong>Bayesian optimization</strong> via Optuna, using a Tree-structured Parzen Estimator
+      (TPE). Rather than exhaustively scanning a grid or sampling uniformly at random, TPE fits two
+      probability densities over the hyperparameter space &mdash;one conditioned on configurations that
+      scored well so far, one on configurations that scored poorly&mdash; and samples new candidates
+      more likely under the former relative to the latter, an approximation to maximizing expected
+      improvement. Under an identical evaluation budget, this explores the promising regions of the
+      search space far more efficiently than grid or random search &mdash;relevant here because every
+      evaluation means retraining the full model on the training split.
+    </p>
+  </section>
+
+  <section id="forecast">
+    <div class="sec-head"><span class="sec-num">06</span><h2>Multi-step forecasting</h2></div>
+    <p>
+      Beyond the one-step evaluation, every model also produces a recursive forecast roughly one
+      business month ahead: the prediction for <em>t+1</em> is fed back in as if it had been observed,
+      to generate the forecast for <em>t+2</em>, and so on. This is the standard way to extend a
+      one-step model to a multi-step horizon, with a caveat worth stating explicitly:
+      <strong>errors compound with every iteration</strong>, and for the tabular models there is no real
+      future open/high/low/volume to condition on &mdash;they are approximated with the forecast close
+      itself&mdash; so uncertainty grows markedly faster than in the one-step evaluation. ARIMA and
+      TimesFM are the two exceptions that produce a genuinely multi-step forecast natively, in a single
+      pass (ARIMA's forecast function, with widening confidence intervals; TimesFM's patch-based
+      decoder) rather than by recursive rollout, which is one more reason their multi-step forecasts
+      deserve somewhat more trust than the recursively-rolled-out ones from the tabular and small
+      recurrent models. The forecast is reported as an exploratory reference, not a calibrated
+      confidence interval.
+    </p>
+  </section>
+
+  <section id="sentiment">
+    <div class="sec-head"><span class="sec-num">07</span><h2>News sentiment analysis</h2></div>
+    <p>
+      Recent headlines for each company are classified with <span class="mono">FinBERT</span>, a BERT
+      variant pretrained on general text via masked-language modeling and then further pretrained on
+      financial text for three-class sentiment classification (positive / negative / neutral) &mdash;an
+      instance of transfer learning: the general language understanding acquired during pretraining is
+      adapted to a narrower domain with comparatively little financial-text data. In this version of the
+      system, sentiment is treated as an <strong>exploratory signal plotted alongside price</strong>,
+      not as an input to the forecasting models; feeding it in as a regressor (e.g., the daily share of
+      negative headlines) is the natural next extension.
+    </p>
+    <div class="eq-box">
+      <span class="eq-label">FinBERT &mdash; classification</span>
+      \[ P(c\mid x) = \mathrm{softmax}\big(W\,\mathrm{BERT}(x)_{[\text{CLS}]} + b\big)_c,
+         \qquad c \in \{\text{positive, negative, neutral}\} \]
+      <p class="eq-note">
+        \(\mathrm{BERT}(x)_{[\text{CLS}]}\) is the contextual representation of the classification
+        token after passing headline \(x\) through BERT's self-attention layers (the same mechanism as
+        the Transformer above, here bidirectional and pretrained on financial text); the final linear
+        layer projects that representation to three logits, and softmax turns them into probabilities.
+      </p>
+    </div>
+  </section>
+
+  <section id="results">
+    <div class="sec-head"><span class="sec-num">08</span><h2>Compared results</h2></div>
+    <p>Validation-set MAPE (most recent 30&nbsp;%), in the final return-based formulation (level-based for TimesFM):</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Model</th><th class="num">AMZN</th><th class="num">META</th><th class="num">GOOGL</th><th class="num">NVDA</th><th class="num">Average</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="row-model">ARIMA</td><td class="num">1.56 %</td><td class="num">1.71 %</td><td class="num">1.46 %</td><td class="num">1.86 %</td><td class="num best">1.65 %</td></tr>
+          <tr><td class="row-model">Random Forest</td><td class="num">1.55 %</td><td class="num">1.70 %</td><td class="num">1.52 %</td><td class="num">2.36 %</td><td class="num">1.78 %</td></tr>
+          <tr><td class="row-model">XGBoost</td><td class="num">1.55 %</td><td class="num">1.72 %</td><td class="num">1.61 %</td><td class="num">2.16 %</td><td class="num">1.76 %</td></tr>
+          <tr><td class="row-model">LightGBM</td><td class="num">1.58 %</td><td class="num">1.70 %</td><td class="num">1.50 %</td><td class="num">2.09 %</td><td class="num">1.72 %</td></tr>
+          <tr><td class="row-model">GRU</td><td class="num">1.55 %</td><td class="num">1.71 %</td><td class="num">1.46 %</td><td class="num">1.87 %</td><td class="num best">1.65 %</td></tr>
+          <tr><td class="row-model">Transformer</td><td class="num">1.56 %</td><td class="num">1.72 %</td><td class="num">1.53 %</td><td class="num">1.87 %</td><td class="num">1.67 %</td></tr>
+          <tr><td class="row-model">TimesFM <span class="pill">zero-shot</span></td><td class="num">1.58 %</td><td class="num">1.72 %</td><td class="num">1.46 %</td><td class="num">1.92 %</td><td class="num">1.67 %</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      With the target correctly specified, all seven models converge to similar performance
+      (1.5&ndash;2.4&nbsp;% relative error). This is, in itself, an informative result: at a one-day
+      horizon on these four stocks, the choice of algorithm matters less than the statistical
+      specification of the problem &mdash;consistent with the well-documented difficulty of beating a
+      random walk at short horizons. TimesFM's result is the more striking version of the same point:
+      it reaches parity with six models that were each individually tuned on this data, without seeing
+      a single training example from any of these four tickers.
+    </p>
+  </section>
+
+  <section id="ops">
+    <div class="sec-head"><span class="sec-num">09</span><h2>Continuous updates and visualization</h2></div>
+    <p>
+      A daily job refreshes prices and headlines; a separate <strong>weekly</strong> job retrains all
+      seven models and regenerates both the historical fit and the forward forecast. Decoupling the two
+      means the dashboard's real-price line is never more than a day stale, without paying the cost of
+      refitting seven Bayesian-optimized models daily. An interactive dashboard lets users compare, for
+      one or several companies at once, the real price against each model's historical fit and forward
+      forecast, overlaid with the daily share of negative headlines, alongside a "Last training"
+      indicator showing when the models currently shown were last refit.
+    </p>
+  </section>
+
+  <hr class="divider">
+
+  <section id="python">
+    <div class="sec-head"><span class="sec-num">10</span><h2>Note on the Python implementation</h2></div>
+    <p style="color:var(--ink-muted); font-size:14.5px;">
+      Outside the methodological scope of this document, for reference: each stage relies on a
+      standard library from the Python scientific ecosystem.
+    </p>
+    <div class="table-wrap">
+      <table class="impl-table">
+        <tbody>
+          <tr><td>Data &amp; features</td><td class="mono">yfinance · pandas · ta</td></tr>
+          <tr><td>Statistical / ML</td><td class="mono">statsmodels · scikit-learn · xgboost · lightgbm</td></tr>
+          <tr><td>Deep learning / NLP</td><td class="mono">pytorch · transformers (FinBERT)</td></tr>
+          <tr><td>Foundation model</td><td class="mono">timesfm (google/timesfm-2.5-200m-pytorch)</td></tr>
+          <tr><td>Optimization</td><td class="mono">optuna</td></tr>
+          <tr><td>Persistence</td><td class="mono">SQLAlchemy · SQLite</td></tr>
+          <tr><td>Visualization</td><td class="mono">dash · plotly</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    Methodology companion document &middot; universe AMZN / META / GOOGL / NVDA &middot; SpaceX excluded as it is not publicly traded.
+  </footer>
+
+</div>
+</body>
+</html>

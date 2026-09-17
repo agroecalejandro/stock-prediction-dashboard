@@ -1,0 +1,21 @@
+venv/
+windows_ca_bundle.pem
+__pycache__/
+*.pyc
+.env
+data/db/*.db
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+logs/*
+!logs/.gitkeep
+.ipynb_checkpoints/
+*.pt
+*.pkl
+
+# VPS deployment (intentionally excluded from the GitHub repo)
+Dockerfile
+docker-compose.yml
+.dockerignore
+deploy/
