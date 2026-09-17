@@ -1,10 +1,10 @@
-"""Reentrenamiento semanal: corre los 7 modelos para todas las compañías, con
-optimización bayesiana completa, y regenera el ajuste histórico + pronóstico futuro.
+"""Weekly retraining: runs all seven models for every company, with full Bayesian
+hyperparameter optimization, and regenerates both the historical fit and the forward
+forecast.
 
-Pensado para ejecutarse una vez por semana vía cron (en el VPS) o Task Scheduler
-(en local) — ver README.md para la línea de cron. La fecha de esta corrida queda
-registrada en ModelMetric.trained_at y es lo que el dashboard muestra como
-"Last training".
+Intended to run once a week on a schedule (e.g. a cron job or a scheduled task). The
+timestamp of this run is recorded in ModelMetric.trained_at, which the dashboard
+displays as "Last training".
 """
 import sys
 import argparse

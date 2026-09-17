@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Stock Prediction Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #eef1ec; --surface: #ffffff; --ink: #1a2421; --ink-muted: #5b6560;
+    --accent: #1f4b6b; --accent-strong: #163a54; --accent-soft: #e3edf2;
+    --line: #d3d7cd; --shadow: 0 1px 2px rgba(26,36,33,0.06), 0 8px 24px rgba(26,36,33,0.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121615; --surface: #1a201e; --ink: #e7ebe5; --ink-muted: #9aa39c;
+      --accent: #86adc7; --accent-strong: #a9c7db; --accent-soft: #1e2f39;
+      --line: #2b322e; --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121615; --surface: #1a201e; --ink: #e7ebe5; --ink-muted: #9aa39c;
+    --accent: #86adc7; --accent-strong: #a9c7db; --accent-soft: #1e2f39;
+    --line: #2b322e; --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+    line-height: 1.6; padding: 0 20px;
+  }
+  .page { max-width: 720px; margin: 0 auto; padding-block: 64px 96px; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 12px;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); font-weight: 500;
+  }
+  h1 {
+    font-family: "IBM Plex Serif", ui-serif, Georgia, serif;
+    font-size: clamp(28px, 4.4vw, 38px); line-height: 1.15; margin: 10px 0 18px;
+    text-wrap: balance;
+  }
+  p.lead { color: var(--ink-muted); font-size: 17px; max-width: 62ch; margin: 0 0 40px; }
+  .links { display: flex; flex-direction: column; gap: 14px; }
+  a.card {
+    display: block; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 10px; padding: 20px 24px; box-shadow: var(--shadow);
+    text-decoration: none; color: var(--ink);
+  }
+  a.card .k {
+    font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--accent-strong);
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  a.card h2 {
+    font-family: "IBM Plex Serif", serif; font-size: 19px; font-weight: 600; margin: 4px 0 6px;
+  }
+  a.card p { color: var(--ink-muted); font-size: 14px; margin: 0; }
+  footer { margin-top: 48px; font-size: 12.5px; color: var(--ink-muted); }
+  footer a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="page">
+  <span class="eyebrow">Applied data science for markets</span>
+  <h1>Stock Prediction Dashboard</h1>
+  <p class="lead">
+    Daily price forecasting for four tech stocks, comparing seven models across four
+    modeling paradigms — statistical, machine learning, deep learning, and a pretrained
+    foundation model.
+  </p>
+  <div class="links">
+    <a class="card" href="dashboard_preview.html">
+      <span class="k">Interactive chart</span>
+      <h2>Actual price vs. forecast, all models</h2>
+      <p>A standalone Plotly chart with real data — switch companies with the dropdown, zoom, and pan. No server required.</p>
+    </a>
+    <a class="card" href="metodologia_workflow.html">
+      <span class="k">Methodology</span>
+      <h2>Theory behind every model</h2>
+      <p>The full write-up: stationarity, validation design, the math behind each of the seven models, and metric definitions.</p>
+    </a>
+    <a class="card" href="https://github.com/agroecalejandro/stock-prediction-dashboard">
+      <span class="k">Source code</span>
+      <h2>GitHub repository</h2>
+      <p>Data ingestion, feature engineering, all seven models, and the dashboard's source.</p>
+    </a>
+  </div>
+  <footer>
+    Universe: AMZN · META · GOOGL · NVDA
+  </footer>
+</div>
+</body>
+</html>

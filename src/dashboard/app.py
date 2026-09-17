@@ -39,7 +39,7 @@ MODEL_DASH = {
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.FLATLY])
 app.title = "Stock Prediction Dashboard"
-server = app.server  # entry point para gunicorn en producción (VPS)
+server = app.server  # exposes the underlying Flask app for a WSGI server
 
 
 @server.route("/metodologia")

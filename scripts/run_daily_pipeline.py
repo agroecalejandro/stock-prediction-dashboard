@@ -1,11 +1,9 @@
-"""Pipeline diario: solo actualiza precios y noticias/sentimiento (rápido).
+"""Daily pipeline: refreshes prices and news/sentiment.
 
-El reentrenamiento de modelos ya NO ocurre aquí — ver scripts/run_weekly_training.py.
-Separar ambos permite mantener el precio real y las noticias frescos todos los días
-sin pagar el costo de reentrenar 7 modelos x N compañías a diario (innecesario: los
-modelos no cambian tanto día a día, y esto libera CPU en el VPS).
-
-Pensado para ejecutarse una vez al día vía cron (en el VPS) o Task Scheduler (en local).
+Model training runs separately, on a weekly cadence (see run_weekly_training.py), so
+that prices and news stay current every day without the cost of retraining every model
+on each run. Intended to run once a day on a schedule (e.g. a cron job or a scheduled
+task).
 """
 import sys
 import logging

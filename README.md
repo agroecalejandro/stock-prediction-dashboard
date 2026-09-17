@@ -9,8 +9,6 @@ A full methodology write-up (theory, math, and validation design behind every mo
 included in [`metodologia_workflow.html`](./metodologia_workflow.html) and is also
 served as a second tab inside the running dashboard.
 
-> **Note:** SpaceX is not included since it is not a publicly traded company.
-
 ## Architecture
 
 ```
@@ -114,7 +112,7 @@ venv\Scripts\python -m src.models.train --tickers AMZN NVDA --models ARIMA GRU T
 ```bash
 venv\Scripts\python -m src.dashboard.app
 ```
-Open http://localhost:8050
+This starts a local development server; open the URL it prints in your browser.
 
 **Production cadence** (two separate scripts, meant to be scheduled independently — daily
 data refresh is cheap, weekly retraining is the expensive step):

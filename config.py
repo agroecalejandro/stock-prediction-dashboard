@@ -4,11 +4,11 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
 
-# En esta máquina, un antivirus/proxy hace inspección SSL e inyecta su propio
-# certificado raíz en el almacén de Windows. Librerías como curl_cffi (usada por
-# yfinance) no confían en ese almacén por defecto, así que apuntamos explícitamente
-# a un bundle de certificados exportado desde Windows (ver windows_ca_bundle.pem).
-# En el VPS (Linux, sin ese antivirus) este archivo no existirá y esto no aplica.
+# Some Windows setups run an antivirus/proxy that does SSL inspection and injects its
+# own root certificate into the Windows certificate store. Libraries such as curl_cffi
+# (used by yfinance) don't trust that store by default, so if a certificate bundle
+# exported from Windows is present (see windows_ca_bundle.pem), we point the relevant
+# env vars at it. On any machine without that file, this simply has no effect.
 _CA_BUNDLE = BASE_DIR / "windows_ca_bundle.pem"
 if _CA_BUNDLE.exists():
     os.environ.setdefault("CURL_CA_BUNDLE", str(_CA_BUNDLE))

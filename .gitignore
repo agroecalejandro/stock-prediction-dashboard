@@ -14,7 +14,7 @@ logs/*
 *.pt
 *.pkl
 
-# VPS deployment (intentionally excluded from the GitHub repo)
+# Containerization/deployment files
 Dockerfile
 docker-compose.yml
 .dockerignore
